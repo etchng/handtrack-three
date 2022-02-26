@@ -1,11 +1,16 @@
 body {
     margin: 0;
 }
+canvas {
+    width: 100%;
+    height: 100%;
+}
+
 #canvas{
     border-radius: 3px;
     margin-right: 10px;
-    width: 225px;
-    height: 169px;
+    width: 225px*1.25;
+    height: 169px*1.25;
     border-bottom: 3px solid #0063FF;
     box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.2), 0 4px 10px 0 #00000030;
 }

@@ -14,10 +14,10 @@ document.body.appendChild(renderer.domElement);
 
 // Creating 3D object
 var geometry = new THREE.BoxGeometry(1, 2, 1);
-var material = new THREE.MeshBasicMaterial({
-    color: "rgb(3, 197, 221)",
-    wireframe: true,
-    wireframeLinewidth: 1
+var material = new THREE.MeshNormalMaterial({
+    // color: "rgb(3, 197, 221)",
+    // wireframe: true,
+    // wireframeLinewidth: 1
 });
 
 var cube = new THREE.Mesh(geometry, material);
@@ -25,15 +25,25 @@ var cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 camera.position.z = 5;
 
+
+
 // Optional animation to rotate the element
 var animate = function () {
     requestAnimationFrame(animate);
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
+    // cube.rotation.x += 0.01;
+    // cube.rotation.y += 0.01;
     renderer.render(scene, camera);
 };
 
+
 animate();
+
+window.addEventListener('resize', function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    composer.setSize(window.innerWidth, window.innerHeight);
+}, false);
+
 // Creating Canavs for video Input
 const video = document.getElementById("myvideo");
 const handimg = document.getElementById("handimage");
@@ -50,8 +60,8 @@ let model = null;
 const modelParams = {
     flipHorizontal: true,
     maxNumBoxes: 2,
-    iouThreshold: 0.5,
-    scoreThreshold: 0.7
+    iouThreshold: 0.9,
+    scoreThreshold: 0.9
 };
 
 handTrack.load(modelParams).then(lmodel => {
@@ -93,27 +103,52 @@ function runDetection() {
         }
         if (predictions.length > 0) {
             const openHand = predictions.filter(gesture => gesture.class === 1);
+            const pinchHand = predictions.filter(gesture => gesture.class === 3);
             // predictions[0]=openHand[0];
             // console.log(openHand[0].bbox[0]);
-            if (predictions[0]=openHand[0]) 
-{            changeData(openHand[0].bbox);
-}        }
-    });
+            if (predictions[0] = openHand[0]) {
+                changeDataRotate(openHand[0].bbox);
+            }
+            if (predictions[0] = pinchHand[0]) {
+                changeDataPosition(pinchHand[0].bbox);
+                console.log(pinchHand[0].bbox);
+
+            }
+        }
+    }
+    );
 }
 //Method to Change prediction data into useful information
-function changeData(value) {
+function changeDataPosition(value) {
+    let midvalX = value[0] + value[2] / 2;
+    let midvalY = value[1] + value[3] / 2;
+    let midvalZ = value[1] / value[3];
+
+    document.querySelector(".hand-1 #hand-x span").innerHTML = midvalX;
+    document.querySelector(".hand-1 #hand-y span").innerHTML = midvalY;
+
+    moveTheBox({ x: (midvalX - 300) / 600, y: (midvalY - 250) / 500, z:  midvalZ*.35-.15});
+}
+function changeDataRotate(value) {
     let midvalX = value[0] + value[2] / 2;
     let midvalY = value[1] + value[3] / 2;
 
     document.querySelector(".hand-1 #hand-x span").innerHTML = midvalX;
     document.querySelector(".hand-1 #hand-y span").innerHTML = midvalY;
 
-    moveTheBox({ x: (midvalX - 300) / 600, y: (midvalY - 250) / 500 });
+    rotateTheBox({ x: (midvalX - 300) / 600, y: (midvalY - 250) / 500 });
 }
 
 //Method to use prediction data to render cude accordingly
 function moveTheBox(value) {
     cube.position.x = ((window.innerWidth * value.x) / window.innerWidth) * 6;
     cube.position.y = -((window.innerHeight * value.y) / window.innerHeight) * 6;
+    cube.position.z = value.z * 5;
+    // cube.position.z = ((window.innerHeight * value.y) / window.innerHeight) * 5;
+    renderer.render(scene, camera);
+}
+function rotateTheBox(value) {
+    cube.rotation.y = ((window.innerWidth * value.x) / window.innerWidth) * 10;
+    cube.rotation.x = ((window.innerHeight * value.y) / window.innerHeight) * 10;
     renderer.render(scene, camera);
 }
